@@ -1,3 +1,6 @@
+WORKSPACE="/scratch/hdd001/home/bichengx/projects/Scene-Graph-Benchmark.pytorch"
+cd ${WORKSPACE}
+
 CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch --master_port 10028 \
 --nproc_per_node=2 tools/relation_test_net.py \
 --config-file "configs/e2e_relation_X_101_32_8_FPN_1x.yaml" \
