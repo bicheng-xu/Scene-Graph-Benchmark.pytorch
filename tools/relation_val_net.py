@@ -102,7 +102,7 @@ def main():
             output_folder = os.path.join(cfg.OUTPUT_DIR, "inference", dataset_name)
             mkdir(output_folder)
             output_folders[idx] = output_folder
-    data_loaders_val = make_data_loader(cfg=cfg, mode="test", is_distributed=distributed, dataset_to_test=cfg.DATASETS.TO_TEST)
+    data_loaders_val = make_data_loader(cfg=cfg, mode="val", is_distributed=distributed, dataset_to_test=cfg.DATASETS.TO_TEST)
     for output_folder, dataset_name, data_loader_val in zip(output_folders, dataset_names, data_loaders_val):
         inference(
             cfg,
