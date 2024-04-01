@@ -35,3 +35,5 @@ datasets/vg/
 # MacOS
 .DS_Store
 
+# slurm
+slurm-output/
