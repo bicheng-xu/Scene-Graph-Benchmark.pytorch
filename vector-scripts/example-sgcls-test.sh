@@ -1,3 +1,20 @@
+#!/bin/bash
+#SBATCH --job-name=example-sgcls-test
+#SBATCH --nodes=1
+#SBATCH --partition=rtx6000
+#SBATCH --exclude=gpu138
+#SBATCH --mem=80GB
+#SBATCH -c 18
+#SBATCH --gres=gpu:rtx6000:1
+#SBATCH --qos=normal
+#SBATCH --time=12:00:00
+#SBATCH --export=ALL
+#SBATCH --open-mode=append
+#SBATCH --output=slurm-output/%x.%j.out
+#SBATCH --error=slurm-output/%x.%j.err
+#SBATCH --mail-user=bichengx@cs.ubc.ca
+#SBATCH --mail-type=ALL
+
 WORKSPACE="/scratch/hdd001/home/bichengx/projects/Scene-Graph-Benchmark.pytorch"
 cd ${WORKSPACE}
 
