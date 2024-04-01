@@ -15,8 +15,13 @@
 #SBATCH --mail-user=bichengx@cs.ubc.ca
 #SBATCH --mail-type=ALL
 
+echo ${SLURM_JOB_ID}
+module load my-cuda10.1+cudnn7.6.3
+
 WORKSPACE="/scratch/hdd001/home/bichengx/projects/Scene-Graph-Benchmark.pytorch"
 cd ${WORKSPACE}
+
+source /h/bichengx/site-pkgs/anaconda3/bin/activate SGed
 
 CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch --master_port 10018 \
 --nproc_per_node=1 tools/relation_test_net.py \
@@ -31,4 +36,4 @@ TEST.IMS_PER_BATCH 1 \
 DTYPE "float16" \
 GLOVE_DIR /scratch/hdd001/home/bichengx/projects/SG-Models/glove \
 MODEL.PRETRAINED_DETECTOR_CKPT /scratch/hdd001/home/bichengx/projects/SG-Models/upload_causal_motif_predcls/model_0030000.pth \
-OUTPUT_DIR /scratch/hdd001/home/bichengx/projects/SG-Models/upload_causal_motif_predcls_test
+OUTPUT_DIR /scratch/hdd001/home/bichengx/projects/SG-Models/upload_causal_motif_predcls_test_2
