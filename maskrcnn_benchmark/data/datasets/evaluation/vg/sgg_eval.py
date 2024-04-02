@@ -263,7 +263,7 @@ class SGPairAccuracy(SceneGraphEvaluation):
         result_str += ' for mode=%s, type=TopK Accuracy.' % mode
         result_str += '\n'
 
-        result_str = 'SGG eval: '
+        result_str += 'SGG eval: '
         for k, v in self.result_dict[mode + '_accuracy_rate'].items():
             a_rate = np.mean(v)
             result_str += '    A_rate @ %d: %.4f; ' % (k, a_rate)
@@ -328,7 +328,7 @@ class SGMeanAcc(SceneGraphEvaluation):
             result_str += '\n'
             result_str += '--------------------------------------------------------\n'
 
-        result_str = 'SGG eval: '
+        result_str += 'SGG eval: '
         for k, v in self.result_dict[mode + '_mean_acc_global'].items():
             result_str += '   mAccGlobal @ %d: %.4f; ' % (k, float(v))
         result_str += ' for mode=%s, type=Mean Acc Global.' % mode
