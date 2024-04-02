@@ -252,6 +252,7 @@ class SGPairAccuracy(SceneGraphEvaluation):
     def register_container(self, mode):
         self.result_dict[mode + '_accuracy_hit'] = {20: [], 50: [], 100: []}
         self.result_dict[mode + '_accuracy_count'] = {20: [], 50: [], 100: []}
+        self.result_dict[mode + '_accuracy_rate'] = {20: [], 50: [], 100: []}
 
     def generate_print_string(self, mode):
         result_str = 'SGG eval: '
@@ -261,6 +262,14 @@ class SGPairAccuracy(SceneGraphEvaluation):
             result_str += '    A @ %d: %.4f; ' % (k, a_hit/a_count)
         result_str += ' for mode=%s, type=TopK Accuracy.' % mode
         result_str += '\n'
+
+        result_str = 'SGG eval: '
+        for k, v in self.result_dict[mode + '_accuracy_rate'].items():
+            a_rate = np.mean(v)
+            result_str += '    A_rate @ %d: %.4f; ' % (k, a_rate)
+        result_str += ' for mode=%s, type=TopK Accuracy_Rate.' % mode
+        result_str += '\n'
+
         return result_str
 
     def prepare_gtpair(self, local_container):
@@ -280,6 +289,8 @@ class SGPairAccuracy(SceneGraphEvaluation):
                 gt_pair_pred_to_gt = []
                 for p, flag in zip(pred_to_gt, self.pred_pair_in_gt):
                     if flag:
+                        if len(p) > 1:
+                            import pdb; pdb.set_trace()
                         gt_pair_pred_to_gt.append(p)
                 if len(gt_pair_pred_to_gt) > 0:
                     gt_pair_match = reduce(np.union1d, gt_pair_pred_to_gt[:k])
@@ -287,6 +298,7 @@ class SGPairAccuracy(SceneGraphEvaluation):
                     gt_pair_match = []
                 self.result_dict[mode + '_accuracy_hit'][k].append(float(len(gt_pair_match)))
                 self.result_dict[mode + '_accuracy_count'][k].append(float(gt_rels.shape[0]))
+                self.result_dict[mode + '_accuracy_rate'][k].append(float(len(gt_pair_match)) / float(gt_rels.shape[0]))
 
 
 """
