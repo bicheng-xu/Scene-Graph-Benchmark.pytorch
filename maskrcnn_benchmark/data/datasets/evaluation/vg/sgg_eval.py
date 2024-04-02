@@ -289,8 +289,6 @@ class SGPairAccuracy(SceneGraphEvaluation):
                 gt_pair_pred_to_gt = []
                 for p, flag in zip(pred_to_gt, self.pred_pair_in_gt):
                     if flag:
-                        if len(p) > 1:
-                            import pdb; pdb.set_trace()
                         gt_pair_pred_to_gt.append(p)
                 if len(gt_pair_pred_to_gt) > 0:
                     gt_pair_match = reduce(np.union1d, gt_pair_pred_to_gt[:k])
