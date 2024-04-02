@@ -75,7 +75,8 @@ def main():
 
     output_dir = cfg.OUTPUT_DIR
     checkpointer = DetectronCheckpointer(cfg, model, save_dir=output_dir)
-    _ = checkpointer.load(cfg.MODEL.WEIGHT)
+    # _ = checkpointer.load(cfg.MODEL.WEIGHT)
+    _ = checkpointer.load(cfg.MODEL.PRETRAINED_DETECTOR_CKPT)
 
     iou_types = ("bbox",)
     if cfg.MODEL.MASK_ON:
