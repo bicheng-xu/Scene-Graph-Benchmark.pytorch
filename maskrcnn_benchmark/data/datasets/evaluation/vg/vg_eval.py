@@ -12,7 +12,7 @@ from maskrcnn_benchmark.data import get_dataset_statistics
 from maskrcnn_benchmark.structures.bounding_box import BoxList
 from maskrcnn_benchmark.structures.boxlist_ops import boxlist_iou
 from maskrcnn_benchmark.utils.miscellaneous import intersect_2d, argsort_desc, bbox_overlaps
-from maskrcnn_benchmark.data.datasets.evaluation.vg.sgg_eval import SGRecall, SGNoGraphConstraintRecall, SGZeroShotRecall, SGNGZeroShotRecall, SGPairAccuracy, SGMeanRecall, SGNGMeanRecall, SGAccumulateRecall
+from maskrcnn_benchmark.data.datasets.evaluation.vg.sgg_eval import SGRecall, SGNoGraphConstraintRecall, SGZeroShotRecall, SGNGZeroShotRecall, SGPairAccuracy, SGMeanRecall, SGNGMeanRecall, SGAccumulateRecall, SGMeanAcc
 
 def do_vg_evaluation(
     cfg,
@@ -140,6 +140,10 @@ def do_vg_evaluation(
         eval_pair_accuracy.register_container(mode)
         evaluator['eval_pair_accuracy'] = eval_pair_accuracy
 
+        eval_mean_acc = SGMeanAcc(result_dict, num_rel_category, dataset.ind_to_predicates, print_detail=True)
+        eval_mean_acc.register_container(mode)
+        evaluator['eval_mean_acc'] = eval_mean_acc
+
         # used for meanRecall@K
         eval_mean_recall = SGMeanRecall(result_dict, num_rel_category, dataset.ind_to_predicates, print_detail=True)
         eval_mean_recall.register_container(mode)
@@ -164,6 +168,7 @@ def do_vg_evaluation(
         for groundtruth, prediction in zip(groundtruths, predictions):
             evaluate_relation_of_one_image(groundtruth, prediction, global_container, evaluator)
         
+        eval_mean_acc.calculate_mean_recall(mode)
         # calculate mean recall
         eval_mean_recall.calculate_mean_recall(mode)
         eval_ng_mean_recall.calculate_mean_recall(mode)
@@ -177,6 +182,7 @@ def do_vg_evaluation(
         result_str += eval_ng_mean_recall.generate_print_string(mode)
         
         if cfg.MODEL.ROI_RELATION_HEAD.USE_GT_BOX:
+            result_str += eval_mean_acc.generate_print_string(mode)
             result_str += eval_pair_accuracy.generate_print_string(mode)
         result_str += '=' * 100 + '\n'
 
@@ -256,6 +262,8 @@ def evaluate_relation_of_one_image(groundtruth, prediction, global_container, ev
     # for sgcls and predcls
     if mode != 'sgdet':
         evaluator['eval_pair_accuracy'].prepare_gtpair(local_container)
+        evaluator['eval_mean_acc'].prepare_gtpair(local_container)
+        assert (np.array_equal(evaluator['eval_pair_accuracy'].pred_pair_in_gt, evaluator['eval_mean_acc'].pred_pair_in_gt))
 
     # to calculate the prior label based on statistics
     evaluator['eval_zeroshot_recall'].prepare_zeroshot(global_container, local_container)
@@ -308,6 +316,7 @@ def evaluate_relation_of_one_image(groundtruth, prediction, global_container, ev
     evaluator['eval_nog_recall'].calculate_recall(global_container, local_container, mode)
     # GT Pair Accuracy
     evaluator['eval_pair_accuracy'].calculate_recall(global_container, local_container, mode)
+    evaluator['eval_mean_acc'].collect_mean_recall_items(global_container, local_container, mode)
     # Mean Recall
     evaluator['eval_mean_recall'].collect_mean_recall_items(global_container, local_container, mode)
     # No Graph Constraint Mean Recall
