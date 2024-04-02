@@ -33,7 +33,7 @@ MODEL.ROI_RELATION_HEAD.CAUSAL.EFFECT_TYPE TDE \
 MODEL.ROI_RELATION_HEAD.CAUSAL.FUSION_TYPE sum \
 MODEL.ROI_RELATION_HEAD.CAUSAL.CONTEXT_LAYER motifs \
 TEST.IMS_PER_BATCH 1 \
-DTYPE "float16" \
+DTYPE "float32" \
 GLOVE_DIR /scratch/hdd001/home/bichengx/projects/SG-Models/glove \
 MODEL.PRETRAINED_DETECTOR_CKPT /scratch/hdd001/home/bichengx/projects/SG-Models/upload_causal_motif_sgcls/model_0032000.pth \
 OUTPUT_DIR /scratch/hdd001/home/bichengx/projects/SG-Models/upload_causal_motif_sgcls_val
