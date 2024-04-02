@@ -299,6 +299,120 @@ class SGPairAccuracy(SceneGraphEvaluation):
                 self.result_dict[mode + '_accuracy_rate'][k].append(float(len(gt_pair_match)) / float(gt_rels.shape[0]))
 
 
+class SGMeanAcc(SceneGraphEvaluation):
+    def __init__(self, result_dict, num_rel, ind_to_predicates, print_detail=False):
+        super(SGMeanAcc, self).__init__(result_dict)
+        self.num_rel = num_rel
+        self.print_detail = print_detail
+        self.rel_name_list = ind_to_predicates[1:] # remove __background__
+
+    def register_container(self, mode):
+        self.result_dict[mode + '_mean_acc'] = {20: 0.0, 50: 0.0, 100: 0.0}
+        self.result_dict[mode + '_mean_acc_collect'] = {20: [[] for i in range(self.num_rel)], 50: [[] for i in range(self.num_rel)], 100: [[] for i in range(self.num_rel)]}
+        self.result_dict[mode + '_mean_acc_list'] = {20: [], 50: [], 100: []}
+        self.result_dict[mode + '_mean_acc_global'] = {20: 0.0, 50: 0.0, 100: 0.0}
+        self.result_dict[mode + '_mean_acc_collect_hit_global'] = {20: [[] for i in range(self.num_rel)], 50: [[] for i in range(self.num_rel)], 100: [[] for i in range(self.num_rel)]}
+        self.result_dict[mode + '_mean_acc_collect_count_global'] = {20: [[] for i in range(self.num_rel)], 50: [[] for i in range(self.num_rel)], 100: [[] for i in range(self.num_rel)]}
+        self.result_dict[mode + '_mean_acc_list_global'] = {20: [], 50: [], 100: []}
+
+    def generate_print_string(self, mode):
+        result_str = 'SGG eval: '
+        for k, v in self.result_dict[mode + '_mean_acc'].items():
+            result_str += '   mAcc @ %d: %.4f; ' % (k, float(v))
+        result_str += ' for mode=%s, type=Mean Acc.' % mode
+        result_str += '\n'
+        if self.print_detail:
+            result_str += '----------------------- Details ------------------------\n'
+            for n, r in zip(self.rel_name_list, self.result_dict[mode + '_mean_acc_list'][100]):
+                result_str += '({}:{:.4f}) '.format(str(n), r)
+            result_str += '\n'
+            result_str += '--------------------------------------------------------\n'
+
+        result_str = 'SGG eval: '
+        for k, v in self.result_dict[mode + '_mean_acc_global'].items():
+            result_str += '   mAccGlobal @ %d: %.4f; ' % (k, float(v))
+        result_str += ' for mode=%s, type=Mean Acc Global.' % mode
+        result_str += '\n'
+        if self.print_detail:
+            result_str += '----------------------- Details ------------------------\n'
+            for n, r in zip(self.rel_name_list, self.result_dict[mode + '_mean_acc_list_global'][100]):
+                result_str += '({}:{:.4f}) '.format(str(n), r)
+            result_str += '\n'
+            result_str += '--------------------------------------------------------\n'
+
+        return result_str
+
+    def prepare_gtpair(self, local_container):
+        pred_pair_idx = local_container['pred_rel_inds'][:, 0] * 1024 + local_container['pred_rel_inds'][:, 1]
+        gt_pair_idx = local_container['gt_rels'][:, 0] * 1024 + local_container['gt_rels'][:, 1]
+        self.pred_pair_in_gt = (pred_pair_idx[:, None] == gt_pair_idx[None, :]).sum(-1) > 0
+
+    def collect_mean_recall_items(self, global_container, local_container, mode):
+        pred_to_gt = local_container['pred_to_gt']
+        gt_rels = local_container['gt_rels']
+
+        for k in self.result_dict[mode + '_mean_acc_collect']:
+            if mode != 'sgdet':
+                # the following code are copied from Neural-MOTIFS
+                # match = reduce(np.union1d, pred_to_gt[:k])
+                gt_pair_pred_to_gt = []
+                for p, flag in zip(pred_to_gt, self.pred_pair_in_gt):
+                    if flag:
+                        gt_pair_pred_to_gt.append(p)
+                if len(gt_pair_pred_to_gt) > 0:
+                    gt_pair_match = reduce(np.union1d, gt_pair_pred_to_gt[:k])
+                else:
+                    gt_pair_match = []
+
+                # NOTE: by kaihua, calculate Mean Recall for each category independently
+                # this metric is proposed by: CVPR 2019 oral paper "Learning to Compose Dynamic Tree Structures for Visual Contexts"
+                recall_hit = [0] * self.num_rel
+                recall_count = [0] * self.num_rel
+                for idx in range(gt_rels.shape[0]):
+                    local_label = gt_rels[idx,2]
+                    recall_count[int(local_label)] += 1
+                    recall_count[0] += 1
+
+                for idx in range(len(gt_pair_match)):
+                    local_label = gt_rels[int(gt_pair_match[idx]),2]
+                    recall_hit[int(local_label)] += 1
+                    recall_hit[0] += 1
+
+                for n in range(self.num_rel):
+                    if recall_count[n] > 0:
+                        self.result_dict[mode + '_mean_acc_collect'][k][n].append(float(recall_hit[n]) / float(recall_count[n]))
+                        self.result_dict[mode + '_mean_acc_collect_hit_global'][k][n].append(float(recall_hit[n]))
+                        self.result_dict[mode + '_mean_acc_collect_count_global'][k][n].append(float(recall_count[n]))
+
+    def calculate_mean_recall(self, mode):
+        for k, v in self.result_dict[mode + '_mean_acc'].items():
+            sum_recall = 0
+            num_rel_no_bg = self.num_rel - 1
+            for idx in range(num_rel_no_bg):
+                if len(self.result_dict[mode + '_mean_acc_collect'][k][idx+1]) == 0:
+                    tmp_recall = 0.0
+                else:
+                    tmp_recall = np.mean(self.result_dict[mode + '_mean_acc_collect'][k][idx+1])
+                self.result_dict[mode + '_mean_acc_list'][k].append(tmp_recall)
+                sum_recall += tmp_recall
+
+            self.result_dict[mode + '_mean_acc'][k] = sum_recall / float(num_rel_no_bg)
+
+        for k, v in self.result_dict[mode + '_mean_acc_global'].items():
+            sum_recall = 0
+            num_rel_no_bg = self.num_rel - 1
+            for idx in range(num_rel_no_bg):
+                if len(self.result_dict[mode + '_mean_acc_collect_count_global'][k][idx+1]) == 0:
+                    tmp_recall = 0.0
+                else:
+                    tmp_recall = np.mean(self.result_dict[mode + '_mean_acc_collect_hit_global'][k][idx+1]) / np.mean(self.result_dict[mode + '_mean_acc_collect_count_global'][k][idx+1])
+                self.result_dict[mode + '_mean_acc_list_global'][k].append(tmp_recall)
+                sum_recall += tmp_recall
+
+            self.result_dict[mode + '_mean_acc_global'][k] = sum_recall / float(num_rel_no_bg)
+        return
+
+
 """
 Mean Recall: Proposed in:
 https://arxiv.org/pdf/1812.01880.pdf CVPR, 2019
