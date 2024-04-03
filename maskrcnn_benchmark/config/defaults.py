@@ -599,3 +599,15 @@ _C.DTYPE = "float32"
 
 # Enable verbosity in apex.amp
 _C.AMP_VERBOSE = False
+
+# ---------------------------------------------------------------------------- #
+# Generated images eval options
+# ---------------------------------------------------------------------------- #
+_C.GEN_IMG = CN()
+
+_C.GEN_IMG.EVAL = False
+_C.GEN_IMG.ANNO_DIR = ""
+_C.GEN_IMG.BASE_DIR = ""
+_C.GEN_IMG.FOLDER_NAME = ""
+_C.GEN_IMG.NUM_ROUNDS = 1
+_C.GEN_IMG.RESOLUTION = 256
