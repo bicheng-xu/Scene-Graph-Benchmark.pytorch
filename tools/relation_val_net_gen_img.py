@@ -56,7 +56,10 @@ def main():
     cfg.merge_from_list(args.opts)
     cfg.freeze()
 
-    save_dir = os.path.join(cfg.OUTPUT_DIR, "inference_val_log")
+    # update output_dir
+    output_dir = os.path.join(cfg.GEN_IMG.BASE_DIR, cfg.GEN_IMG.FOLDER_NAME + "_sgg_eval_debug")
+
+    save_dir = os.path.join(output_dir, "inference_val_log")
     if save_dir:
         mkdir(save_dir)
     logger = setup_logger("maskrcnn_benchmark", save_dir, get_rank())
@@ -73,7 +76,6 @@ def main():
     use_mixed_precision = cfg.DTYPE == 'float16'
     amp_handle = amp.init(enabled=use_mixed_precision, verbose=cfg.AMP_VERBOSE)
 
-    output_dir = cfg.OUTPUT_DIR
     checkpointer = DetectronCheckpointer(cfg, model, save_dir=output_dir)
     # _ = checkpointer.load(cfg.MODEL.WEIGHT)
     _ = checkpointer.load(cfg.MODEL.PRETRAINED_DETECTOR_CKPT)
@@ -99,10 +101,9 @@ def main():
         elif cfg.DATASETS.TO_TEST == 'val':
             dataset_names = cfg.DATASETS.VAL
 
-
-    if cfg.OUTPUT_DIR:
+    if output_dir:
         for idx, dataset_name in enumerate(dataset_names):
-            output_folder = os.path.join(cfg.OUTPUT_DIR, "inference_val", dataset_name)
+            output_folder = os.path.join(output_dir, "inference_val", dataset_name)
             mkdir(output_folder)
             output_folders[idx] = output_folder
     data_loaders_val = make_data_loader(cfg=cfg, mode="val", is_distributed=distributed, dataset_to_test=cfg.DATASETS.TO_TEST)
