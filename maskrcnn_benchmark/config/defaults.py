@@ -584,6 +584,7 @@ _C.TEST.CUSTUM_PATH = '.'
 # Misc options
 # ---------------------------------------------------------------------------- #
 _C.OUTPUT_DIR = "."
+_C.DATA_STAT_DIR = "."
 _C.DETECTED_SGG_DIR = "."
 _C.GLOVE_DIR = "."
 
