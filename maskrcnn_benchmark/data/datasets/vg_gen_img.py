@@ -64,6 +64,7 @@ class VG_Gen_Img_Dataset(torch.utils.data.Dataset):
         assert (torch.tensor(cmp_list).all())
 
         target.add_field("labels", torch.from_numpy(item['node_labels'] + 1))
+        target.add_field("attributes", torch.zeros(item['node_labels'].shape[0], 10, dtype=torch.int64))
         target.add_field("relation", torch.from_numpy(item['edge_map']), is_triplet=True)
         target = target.clip_to_image(remove_empty=True)
         return target
