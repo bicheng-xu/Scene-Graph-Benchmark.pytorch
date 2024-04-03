@@ -64,7 +64,7 @@ def main():
         raise NotImplementedError
 
     # update output_dir
-    output_dir = os.path.join(cfg.GEN_IMG.BASE_DIR, cfg.GEN_IMG.FOLDER_NAME + sgg_mode + "_debug_old")
+    output_dir = os.path.join(cfg.GEN_IMG.BASE_DIR, cfg.GEN_IMG.FOLDER_NAME + sgg_mode + "_debug")
 
     save_dir = os.path.join(output_dir, "inference_val_log")
     if save_dir:
