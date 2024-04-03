@@ -16,6 +16,7 @@ from . import samplers
 
 from .collate_batch import BatchCollator, BBoxAugCollator
 from .transforms import build_transforms
+from maskrcnn_benchmark.data.datasets.vg_gen_img import build_gen_img_dataset
 
 # by Jiaxin
 def get_dataset_statistics(cfg):
@@ -224,7 +225,12 @@ def make_data_loader(cfg, mode='train', is_distributed=False, start_iter=0, data
 
     # If bbox aug is enabled in testing, simply set transforms to None and we will apply transforms later
     transforms = None if not is_train and cfg.TEST.BBOX_AUG.ENABLED else build_transforms(cfg, is_train)
-    datasets = build_dataset(cfg, dataset_list, transforms, DatasetCatalog, is_train)
+
+    if cfg.GEN_IMG.EVAL:
+        assert (aspect_grouping == [])
+        datasets = build_gen_img_dataset(cfg, transforms)
+    else:
+        datasets = build_dataset(cfg, dataset_list, transforms, DatasetCatalog, is_train)
 
     if is_train:
         # save category_id to label name mapping
