@@ -56,8 +56,15 @@ def main():
     cfg.merge_from_list(args.opts)
     cfg.freeze()
 
+    if cfg.MODEL.ROI_RELATION_HEAD.USE_GT_BOX and cfg.MODEL.ROI_RELATION_HEAD.USE_GT_OBJECT_LABEL:
+        sgg_mode = "_sgg_eval_predcls"
+    elif cfg.MODEL.ROI_RELATION_HEAD.USE_GT_BOX and not cfg.MODEL.ROI_RELATION_HEAD.USE_GT_OBJECT_LABEL:
+        sgg_mode = "_sgg_eval_sgcls"
+    else:
+        raise NotImplementedError
+
     # update output_dir
-    output_dir = os.path.join(cfg.GEN_IMG.BASE_DIR, cfg.GEN_IMG.FOLDER_NAME + "_sgg_eval_debug")
+    output_dir = os.path.join(cfg.GEN_IMG.BASE_DIR, cfg.GEN_IMG.FOLDER_NAME + sgg_mode + "_debug_old")
 
     save_dir = os.path.join(output_dir, "inference_val_log")
     if save_dir:
