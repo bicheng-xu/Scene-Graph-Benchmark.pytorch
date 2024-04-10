@@ -86,7 +86,7 @@ class VG_Gen_Img_Dataset(torch.utils.data.Dataset):
             target.add_field("relation_tuple", torch.LongTensor(relation)) # for evaluation
             return target
         else:
-            target = target.clip_to_image(remove_empty=True)
+            target = target.clip_to_image(remove_empty=False)
             return target
 
 
