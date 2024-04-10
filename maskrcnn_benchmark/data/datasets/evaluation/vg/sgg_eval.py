@@ -84,6 +84,9 @@ class SGRecall(SceneGraphEvaluation):
         )
         local_container['pred_to_gt'] = pred_to_gt
 
+        my_pred_to_gt = _my_compute_pred_matches(pred_rel_inds, pred_triplets, gt_rels, gt_triplets)
+        local_container['my_pred_to_gt'] = my_pred_to_gt
+
         for k in self.result_dict[mode + '_recall']:
             # the following code are copied from Neural-MOTIFS
             match = reduce(np.union1d, pred_to_gt[:k])
@@ -253,6 +256,8 @@ class SGPairAccuracy(SceneGraphEvaluation):
         self.result_dict[mode + '_accuracy_hit'] = {20: [], 50: [], 100: []}
         self.result_dict[mode + '_accuracy_count'] = {20: [], 50: [], 100: []}
         self.result_dict[mode + '_accuracy_rate'] = {20: [], 50: [], 100: []}
+        self.result_dict[mode + '_bbox_accuracy'] = []
+        self.result_dict[mode + '_accuracy_rate_mine'] = []
 
     def generate_print_string(self, mode):
         result_str = 'SGG eval: '
@@ -270,6 +275,17 @@ class SGPairAccuracy(SceneGraphEvaluation):
         result_str += ' for mode=%s, type=TopK Accuracy_Rate.' % mode
         result_str += '\n'
 
+        result_str += 'SGG eval: '
+        my_a_rate_mine = np.mean(self.result_dict[mode + '_accuracy_rate_mine'])
+        result_str += '    My_A_rate_Mine: %.4f; ' % (my_a_rate_mine)
+        result_str += ' for mode=%s, type=My Accuracy_Rate-Mine.' % mode
+        result_str += '\n'
+
+        result_str += 'SGG-BBox eval: '
+        bbox_acc = np.mean(self.result_dict[mode + '_bbox_accuracy'])
+        result_str += '    BBox_Acc: %.4f; ' % (bbox_acc)
+        result_str += ' for mode=%s, type=BBox Accuracy.' % mode
+        result_str += '\n'
         return result_str
 
     def prepare_gtpair(self, local_container):
@@ -298,6 +314,12 @@ class SGPairAccuracy(SceneGraphEvaluation):
                 self.result_dict[mode + '_accuracy_count'][k].append(float(gt_rels.shape[0]))
                 self.result_dict[mode + '_accuracy_rate'][k].append(float(len(gt_pair_match)) / float(gt_rels.shape[0]))
 
+        # my version of accuracy
+        self.result_dict[mode + '_accuracy_rate_mine'].append(float(reduce(np.union1d, local_container['my_pred_to_gt']).shape[0]) / float(gt_rels.shape[0]))
+        assert (local_container['pred_classes'].shape == local_container['gt_classes'].shape)
+        bbox_label_match = local_container['pred_classes'] == local_container['gt_classes']
+        self.result_dict[mode + '_bbox_accuracy'].append(float(bbox_label_match.sum()) / float(bbox_label_match.shape[0]))
+
 
 class SGMeanAcc(SceneGraphEvaluation):
     def __init__(self, result_dict, num_rel, ind_to_predicates, print_detail=False):
@@ -314,6 +336,10 @@ class SGMeanAcc(SceneGraphEvaluation):
         self.result_dict[mode + '_mean_acc_collect_hit_global'] = {20: [[] for i in range(self.num_rel)], 50: [[] for i in range(self.num_rel)], 100: [[] for i in range(self.num_rel)]}
         self.result_dict[mode + '_mean_acc_collect_count_global'] = {20: [[] for i in range(self.num_rel)], 50: [[] for i in range(self.num_rel)], 100: [[] for i in range(self.num_rel)]}
         self.result_dict[mode + '_mean_acc_list_global'] = {20: [], 50: [], 100: []}
+        # my version of accuracy
+        self.result_dict[mode + '_mean_acc_mine'] = 0.0
+        self.result_dict[mode + '_mean_acc_collect_mine'] = [[] for i in range(self.num_rel)]
+        self.result_dict[mode + '_mean_acc_list_mine'] = []
 
     def generate_print_string(self, mode):
         result_str = 'SGG eval: '
@@ -340,6 +366,16 @@ class SGMeanAcc(SceneGraphEvaluation):
             result_str += '\n'
             result_str += '--------------------------------------------------------\n'
 
+        result_str += 'SGG eval: '
+        result_str += '   my_mAcc_Mine: %.4f; ' % (float(self.result_dict[mode + '_mean_acc_mine']))
+        result_str += ' for mode=%s, type=My Mean Acc-Mine.' % mode
+        result_str += '\n'
+        if self.print_detail:
+            result_str += '----------------------- Details ------------------------\n'
+            for n, r in zip(self.rel_name_list, self.result_dict[mode + '_mean_acc_list_mine']):
+                result_str += '({}:{:.4f}) '.format(str(n), r)
+            result_str += '\n'
+            result_str += '--------------------------------------------------------\n'
         return result_str
 
     def prepare_gtpair(self, local_container):
@@ -384,6 +420,25 @@ class SGMeanAcc(SceneGraphEvaluation):
                         self.result_dict[mode + '_mean_acc_collect_hit_global'][k][n].append(float(recall_hit[n]))
                         self.result_dict[mode + '_mean_acc_collect_count_global'][k][n].append(float(recall_count[n]))
 
+        # my version of accuracy
+        gt_pair_match = reduce(np.union1d, local_container['my_pred_to_gt'])
+
+        recall_hit = [0] * self.num_rel
+        recall_count = [0] * self.num_rel
+        for idx in range(gt_rels.shape[0]):
+            local_label = gt_rels[idx,2]
+            recall_count[int(local_label)] += 1
+            recall_count[0] += 1
+
+        for idx in range(len(gt_pair_match)):
+            local_label = gt_rels[int(gt_pair_match[idx]),2]
+            recall_hit[int(local_label)] += 1
+            recall_hit[0] += 1
+
+        for n in range(self.num_rel):
+            if recall_count[n] > 0:
+                self.result_dict[mode + '_mean_acc_collect_mine'][n].append(float(recall_hit[n]) / float(recall_count[n]))
+
     def calculate_mean_recall(self, mode):
         for k, v in self.result_dict[mode + '_mean_acc'].items():
             sum_recall = 0
@@ -410,6 +465,19 @@ class SGMeanAcc(SceneGraphEvaluation):
                 sum_recall += tmp_recall
 
             self.result_dict[mode + '_mean_acc_global'][k] = sum_recall / float(num_rel_no_bg)
+
+        # my version of accuracy
+        sum_recall = 0
+        num_rel_no_bg = self.num_rel - 1
+        for idx in range(num_rel_no_bg):
+            if len(self.result_dict[mode + '_mean_acc_collect_mine'][idx+1]) == 0:
+                tmp_recall = 0.0
+            else:
+                tmp_recall = np.mean(self.result_dict[mode + '_mean_acc_collect_mine'][idx+1])
+            self.result_dict[mode + '_mean_acc_list_mine'].append(tmp_recall)
+            sum_recall += tmp_recall
+
+        self.result_dict[mode + '_mean_acc_mine'] = sum_recall / float(num_rel_no_bg)
         return
 
 
@@ -652,3 +720,27 @@ def _compute_pred_matches(gt_triplets, pred_triplets,
     return pred_to_gt
 
 
+def _my_compute_pred_matches(pred_rel_inds, pred_triplets, gt_rels, gt_triplets):
+    # find matching based on the object index
+    my_keeps = intersect_2d(pred_rel_inds, gt_rels[:,:2])
+    assert (my_keeps.sum() == gt_rels.shape[0])
+
+    my_pred_to_gt = []
+    match_cnt_location = 0
+    for idx in range(pred_rel_inds.shape[0]):
+        if my_keeps[idx].any():
+            # if there is a matching, there is only one matching
+            match_gt_idx_list = np.where(my_keeps[idx])[0].tolist()
+            assert (len(match_gt_idx_list) == 1)
+            match_cnt_location += 1
+            # keep the matching if all the labels match
+            if (pred_triplets[idx] == gt_triplets[match_gt_idx_list[0]]).all():
+                my_pred_to_gt.append(match_gt_idx_list)
+            else:
+                my_pred_to_gt.append([])
+        else:
+            my_pred_to_gt.append([])
+
+    assert (match_cnt_location == gt_rels.shape[0])
+    assert (len(my_pred_to_gt) == pred_rel_inds.shape[0])
+    return my_pred_to_gt
