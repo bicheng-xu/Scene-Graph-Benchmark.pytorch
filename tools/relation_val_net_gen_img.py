@@ -5,6 +5,7 @@ from maskrcnn_benchmark.utils.env import setup_environment  # noqa F401 isort:sk
 
 import argparse
 import os
+import numpy as np
 
 import torch
 from maskrcnn_benchmark.config import cfg
@@ -57,14 +58,14 @@ def main():
     cfg.freeze()
 
     if cfg.MODEL.ROI_RELATION_HEAD.USE_GT_BOX and cfg.MODEL.ROI_RELATION_HEAD.USE_GT_OBJECT_LABEL:
-        sgg_mode = "_sgg_eval_predcls"
+        sgg_mode = "_predcls_"
     elif cfg.MODEL.ROI_RELATION_HEAD.USE_GT_BOX and not cfg.MODEL.ROI_RELATION_HEAD.USE_GT_OBJECT_LABEL:
-        sgg_mode = "_sgg_eval_sgcls"
+        sgg_mode = "_sgcls_"
     else:
         raise NotImplementedError
 
     # update output_dir
-    output_dir = os.path.join(cfg.GEN_IMG.BASE_DIR, cfg.GEN_IMG.FOLDER_NAME + sgg_mode + "_debug")
+    output_dir = os.path.join(cfg.GEN_IMG.BASE_DIR, cfg.GEN_IMG.FOLDER_NAME + sgg_mode + cfg.MODEL.ROI_RELATION_HEAD.PREDICTOR + "_" + cfg.MODEL.ROI_RELATION_HEAD.CAUSAL.EFFECT_TYPE)
 
     save_dir = os.path.join(output_dir, "inference_val_log")
     if save_dir:
@@ -124,8 +125,9 @@ def main():
     assert (len(dataset_names) == cfg.GEN_IMG.NUM_ROUNDS)
     assert (len(data_loaders_val) == cfg.GEN_IMG.NUM_ROUNDS)
 
+    rt_array_all = []
     for output_folder, dataset_name, data_loader_val in zip(output_folders, dataset_names, data_loaders_val):
-        inference(
+        rt_array = inference(
             cfg,
             model,
             data_loader_val,
@@ -137,7 +139,14 @@ def main():
             expected_results_sigma_tol=cfg.TEST.EXPECTED_RESULTS_SIGMA_TOL,
             output_folder=output_folder,
         )
+        rt_array_all.append(rt_array)
         synchronize()
+
+    key_list = ["BBox_mAP", "BBox_Label_Acc", "Acc", "mean_Acc", "My_Acc_Mine", "My_mean_Acc_Mine"]
+    value_list = np.mean(np.vstack(rt_array_all), axis=0).tolist()
+    logger.info("========== Averged Results ==========")
+    for key, value in zip(key_list, value_list):
+        logger.info('%s: %.4f' % (key, value))
 
 
 if __name__ == "__main__":
