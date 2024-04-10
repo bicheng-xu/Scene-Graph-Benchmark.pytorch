@@ -132,6 +132,7 @@ TEST:
 GEN_IMG: # Generated images eval options
   EVAL: False
   ANNO_DIR: ""
+  ANNO_FILE: ""
   BASE_DIR: ""
   FOLDER_NAME: ""
   NUM_ROUNDS: 1

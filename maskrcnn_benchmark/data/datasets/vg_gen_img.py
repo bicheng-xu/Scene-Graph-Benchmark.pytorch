@@ -13,7 +13,7 @@ class VG_Gen_Img_Dataset(torch.utils.data.Dataset):
         self.round_num = round_num
         self.transforms = transforms
         self.i_resolution = cfg.GEN_IMG.RESOLUTION
-        self.val_anno_data = pickle.load(open(os.path.join(cfg.GEN_IMG.ANNO_DIR, "validation_data_bbox_dbox32_np.pkl"), "rb"))
+        self.val_anno_data = pickle.load(open(os.path.join(cfg.GEN_IMG.ANNO_DIR, cfg.GEN_IMG.ANNO_FILE), "rb"))
         self.filenames = load_filenames(self.val_anno_data, self.img_folder_name, self.img_folder, self.round_num)
 
         # dictionary comparison

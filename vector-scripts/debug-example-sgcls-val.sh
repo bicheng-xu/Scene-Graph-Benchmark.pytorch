@@ -20,6 +20,7 @@ MODEL.PRETRAINED_DETECTOR_CKPT /scratch/hdd001/home/bichengx/projects/SG-Models/
 DATA_STAT_DIR /scratch/hdd001/home/bichengx/projects/SG-Models/upload_causal_motif_sgcls \
 GEN_IMG.EVAL True \
 GEN_IMG.ANNO_DIR "/h/bichengx/site-pkgs/VG-SGG/V2-Last" \
+GEN_IMG.ANNO_FILE "validation_data_bbox_dbox32_np.pkl" \
 GEN_IMG.BASE_DIR "/scratch/hdd001/home/bichengx/projects/ControlNet/my-diff-cnet/vector-scripts-BX/val-scripts/val-output/vg-a40-single-run_0-1234" \
 GEN_IMG.FOLDER_NAME "validation_image_gt" \
 GEN_IMG.NUM_ROUNDS 1
