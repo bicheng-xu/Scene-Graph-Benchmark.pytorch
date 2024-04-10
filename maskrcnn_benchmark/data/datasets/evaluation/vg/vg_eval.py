@@ -192,7 +192,9 @@ def do_vg_evaluation(
     if "relations" in iou_types:
         if output_folder:
             torch.save(result_dict, os.path.join(output_folder, 'result_dict.pytorch'))
-        return float(np.mean(result_dict[mode + '_recall'][100]))
+        # return float(np.mean(result_dict[mode + '_recall'][100]))
+        # ["BBox_mAP", "BBox_Acc", "Acc", "mean_Acc", "My_Acc_Mine", "My_mean_Acc_Mine"]
+        return np.array([float(mAp), np.mean(result_dict[mode + '_bbox_accuracy']), np.mean((result_dict[mode + '_accuracy_rate'][100])), result_dict[mode + '_mean_acc'][100], np.mean(result_dict[mode + '_accuracy_rate_mine']), result_dict[mode + '_mean_acc_mine']])
     elif "bbox" in iou_types:
         return float(mAp)
     else:
@@ -275,6 +277,7 @@ def evaluate_relation_of_one_image(groundtruth, prediction, global_container, ev
         local_container['obj_scores'] = np.ones(local_container['gt_classes'].shape[0])
 
     elif mode == 'sgcls':
+        assert (local_container['gt_boxes'].shape[0] == local_container['pred_boxes'].shape[0])
         if local_container['gt_boxes'].shape[0] != local_container['pred_boxes'].shape[0]:
             print('Num of GT boxes is not matching with num of pred boxes in SGCLS')
     elif mode == 'sgdet' or mode == 'phrdet':
