@@ -96,7 +96,7 @@ def main():
         iou_types = iou_types + ("relations", )
     if cfg.MODEL.ATTRIBUTE_ON:
         iou_types = iou_types + ("attributes", )
-    output_folders = [None] * len(cfg.DATASETS.VAL)
+    output_folders = [None] * cfg.GEN_IMG.NUM_ROUNDS
 
     dataset_names = cfg.DATASETS.VAL
 
@@ -108,12 +108,22 @@ def main():
         elif cfg.DATASETS.TO_TEST == 'val':
             dataset_names = cfg.DATASETS.VAL
 
+    assert (len(dataset_names) == 1)
+    dataset_names = dataset_names * cfg.GEN_IMG.NUM_ROUNDS
+    assert (len(dataset_names) == cfg.GEN_IMG.NUM_ROUNDS)
+
     if output_dir:
-        for idx, dataset_name in enumerate(dataset_names):
-            output_folder = os.path.join(output_dir, "inference_val", dataset_name)
+        for idx in range(cfg.GEN_IMG.NUM_ROUNDS):
+            dataset_name = dataset_names[idx]
+            output_folder = os.path.join(output_dir, "inference_val_round_"+str(idx), dataset_name)
             mkdir(output_folder)
             output_folders[idx] = output_folder
     data_loaders_val = make_data_loader(cfg=cfg, mode="val", is_distributed=distributed, dataset_to_test=cfg.DATASETS.TO_TEST)
+
+    assert (len(output_folders) == cfg.GEN_IMG.NUM_ROUNDS)
+    assert (len(dataset_names) == cfg.GEN_IMG.NUM_ROUNDS)
+    assert (len(data_loaders_val) == cfg.GEN_IMG.NUM_ROUNDS)
+
     for output_folder, dataset_name, data_loader_val in zip(output_folders, dataset_names, data_loaders_val):
         inference(
             cfg,
