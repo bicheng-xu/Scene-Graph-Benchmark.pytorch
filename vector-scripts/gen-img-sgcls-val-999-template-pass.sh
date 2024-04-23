@@ -3,7 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --partition=rtx6000
 #SBATCH --exclude=gpu138
-#SBATCH --mem=40GB
+#SBATCH --mem=30GB
 #SBATCH -c 9
 #SBATCH --gres=gpu:rtx6000:1
 #SBATCH --qos=normal
