@@ -116,7 +116,7 @@ def main():
     if output_dir:
         for idx in range(cfg.GEN_IMG.NUM_ROUNDS):
             dataset_name = dataset_names[idx]
-            output_folder = os.path.join(output_dir, "inference_val_round_"+str(idx), dataset_name)
+            output_folder = os.path.join(output_dir, "inference_"+cfg.GEN_IMG.ANNO_FILE.split('.')[0]+"_round_"+str(idx), dataset_name)
             mkdir(output_folder)
             output_folders[idx] = output_folder
     data_loaders_val = make_data_loader(cfg=cfg, mode="val", is_distributed=distributed, dataset_to_test=cfg.DATASETS.TO_TEST)
