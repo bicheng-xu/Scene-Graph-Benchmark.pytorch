@@ -2,7 +2,7 @@
 #SBATCH --job-name=example-sgcls-val-999-pass
 #SBATCH --nodes=1
 #SBATCH --partition=rtx6000
-#SBATCH --exclude=gpu138
+#SBATCH --exclude=gpu138,gpu169
 #SBATCH --mem=30GB
 #SBATCH -c 9
 #SBATCH --gres=gpu:rtx6000:1
@@ -26,6 +26,10 @@ PORT_NUM=$1
 GEN_IMG_ANNO_FILE=$2
 GEN_IMG_BASE_DIR=$3
 GEN_IMG_FOLDER_NAME=$4
+
+echo ${GEN_IMG_ANNO_FILE}
+echo ${GEN_IMG_BASE_DIR}
+echo ${GEN_IMG_FOLDER_NAME}
 
 source /h/bichengx/site-pkgs/anaconda3/bin/activate SGed
 
