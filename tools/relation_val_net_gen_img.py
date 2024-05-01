@@ -67,7 +67,7 @@ def main():
     # update output_dir
     output_dir = os.path.join(cfg.GEN_IMG.BASE_DIR, cfg.GEN_IMG.FOLDER_NAME + sgg_mode + cfg.MODEL.ROI_RELATION_HEAD.PREDICTOR + "_" + cfg.MODEL.ROI_RELATION_HEAD.CAUSAL.EFFECT_TYPE)
 
-    save_dir = os.path.join(output_dir, "inference_val_log")
+    save_dir = os.path.join(output_dir, "inference_"+cfg.GEN_IMG.ANNO_FILE.split('.')[0]+"_log")
     if save_dir:
         mkdir(save_dir)
     logger = setup_logger("maskrcnn_benchmark", save_dir, get_rank())
