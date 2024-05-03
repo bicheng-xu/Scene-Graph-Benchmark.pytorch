@@ -65,9 +65,10 @@ def main():
         raise NotImplementedError
 
     # update output_dir
-    output_dir = os.path.join(cfg.GEN_IMG.BASE_DIR, cfg.GEN_IMG.FOLDER_NAME + sgg_mode + cfg.MODEL.ROI_RELATION_HEAD.PREDICTOR + "_" + cfg.MODEL.ROI_RELATION_HEAD.CAUSAL.EFFECT_TYPE)
+    output_dir = os.path.join(cfg.GEN_IMG.BASE_DIR, cfg.GEN_IMG.FOLDER_NAME + sgg_mode + cfg.MODEL.ROI_RELATION_HEAD.PREDICTOR + "_" + cfg.MODEL.ROI_RELATION_HEAD.CAUSAL.EFFECT_TYPE + "_2")
+    evalset_name = cfg.GEN_IMG.ANNO_FILE.split('.')[0]
 
-    save_dir = os.path.join(output_dir, "inference_"+cfg.GEN_IMG.ANNO_FILE.split('.')[0]+"_log")
+    save_dir = os.path.join(output_dir, "inference_"+evalset_name+"_log")
     if save_dir:
         mkdir(save_dir)
     logger = setup_logger("maskrcnn_benchmark", save_dir, get_rank())
@@ -99,39 +100,26 @@ def main():
         iou_types = iou_types + ("attributes", )
     output_folders = [None] * cfg.GEN_IMG.NUM_ROUNDS
 
-    dataset_names = cfg.DATASETS.VAL
-
     # This variable enables the script to run the test on any dataset split.
-    if cfg.DATASETS.TO_TEST:
-        assert cfg.DATASETS.TO_TEST in {'train', 'val', 'test', None}
-        if cfg.DATASETS.TO_TEST == 'train':
-            dataset_names = cfg.DATASETS.TRAIN
-        elif cfg.DATASETS.TO_TEST == 'val':
-            dataset_names = cfg.DATASETS.VAL
-
-    assert (len(dataset_names) == 1)
-    dataset_names = dataset_names * cfg.GEN_IMG.NUM_ROUNDS
-    assert (len(dataset_names) == cfg.GEN_IMG.NUM_ROUNDS)
+    assert (cfg.DATASETS.TO_TEST is None)
 
     if output_dir:
         for idx in range(cfg.GEN_IMG.NUM_ROUNDS):
-            dataset_name = dataset_names[idx]
-            output_folder = os.path.join(output_dir, "inference_"+cfg.GEN_IMG.ANNO_FILE.split('.')[0]+"_round_"+str(idx), dataset_name)
+            output_folder = os.path.join(output_dir, "inference_"+evalset_name+"_round_"+str(idx))
             mkdir(output_folder)
             output_folders[idx] = output_folder
     data_loaders_val = make_data_loader(cfg=cfg, mode="val", is_distributed=distributed, dataset_to_test=cfg.DATASETS.TO_TEST)
 
     assert (len(output_folders) == cfg.GEN_IMG.NUM_ROUNDS)
-    assert (len(dataset_names) == cfg.GEN_IMG.NUM_ROUNDS)
     assert (len(data_loaders_val) == cfg.GEN_IMG.NUM_ROUNDS)
 
     rt_array_all = []
-    for output_folder, dataset_name, data_loader_val in zip(output_folders, dataset_names, data_loaders_val):
+    for output_folder, data_loader_val in zip(output_folders, data_loaders_val):
         rt_array = inference(
             cfg,
             model,
             data_loader_val,
-            dataset_name=dataset_name,
+            dataset_name=evalset_name,
             iou_types=iou_types,
             box_only=False if cfg.MODEL.RETINANET_ON else cfg.MODEL.RPN_ONLY,
             device=cfg.MODEL.DEVICE,
@@ -142,7 +130,7 @@ def main():
         rt_array_all.append(rt_array)
         synchronize()
 
-    key_list = ["BBox_mAP", "BBox_Label_Acc", "Acc", "mean_Acc", "My_Acc_Mine", "My_mean_Acc_Mine"]
+    key_list = ["BBox_mAP", "BBox_Label_Acc", "Acc", "mean_Acc", "My_Acc_Mine", "My_mean_Acc_Mine", "mean_Acc_Head", "mean_Acc_Body", "mean_Acc_Tail"]
     value_list = np.mean(np.vstack(rt_array_all), axis=0).tolist()
     logger.info("========== Averged Results ==========")
     for key, value in zip(key_list, value_list):
