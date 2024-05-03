@@ -322,11 +322,12 @@ class SGPairAccuracy(SceneGraphEvaluation):
 
 
 class SGMeanAcc(SceneGraphEvaluation):
-    def __init__(self, result_dict, num_rel, ind_to_predicates, print_detail=False):
+    def __init__(self, result_dict, num_rel, ind_to_predicates, hbt_group, print_detail=False):
         super(SGMeanAcc, self).__init__(result_dict)
         self.num_rel = num_rel
         self.print_detail = print_detail
         self.rel_name_list = ind_to_predicates[1:] # remove __background__
+        self.hbt_group = hbt_group[1:] # remove __background__
 
     def register_container(self, mode):
         self.result_dict[mode + '_mean_acc'] = {20: 0.0, 50: 0.0, 100: 0.0}
@@ -340,6 +341,9 @@ class SGMeanAcc(SceneGraphEvaluation):
         self.result_dict[mode + '_mean_acc_mine'] = 0.0
         self.result_dict[mode + '_mean_acc_collect_mine'] = [[] for i in range(self.num_rel)]
         self.result_dict[mode + '_mean_acc_list_mine'] = []
+        self.result_dict[mode + '_mean_acc_head'] = 0.0
+        self.result_dict[mode + '_mean_acc_body'] = 0.0
+        self.result_dict[mode + '_mean_acc_tail'] = 0.0
 
     def generate_print_string(self, mode):
         result_str = 'SGG eval: '
@@ -376,6 +380,13 @@ class SGMeanAcc(SceneGraphEvaluation):
                 result_str += '({}:{:.4f}) '.format(str(n), r)
             result_str += '\n'
             result_str += '--------------------------------------------------------\n'
+
+        result_str += 'SGG eval: '
+        result_str += '   mAcc HEAD: %.4f; ' % (self.result_dict[mode + '_mean_acc_head'])
+        result_str += '   mAcc BODY: %.4f; ' % (self.result_dict[mode + '_mean_acc_body'])
+        result_str += '   mAcc TAIL: %.4f; ' % (self.result_dict[mode + '_mean_acc_tail'])
+        result_str += ' for mode=%s, type=Mean Acc HBT.' % mode
+        result_str += '\n'
         return result_str
 
     def prepare_gtpair(self, local_container):
@@ -478,6 +489,14 @@ class SGMeanAcc(SceneGraphEvaluation):
             sum_recall += tmp_recall
 
         self.result_dict[mode + '_mean_acc_mine'] = sum_recall / float(num_rel_no_bg)
+
+        # Head, Body, Tail
+        mean_acc_np = np.array(self.result_dict[mode + '_mean_acc_list_mine'])
+        hbt_np = np.array(self.hbt_group)
+        assert (mean_acc_np.shape[0] == hbt_np.shape[0])
+        self.result_dict[mode + '_mean_acc_head'] = mean_acc_np[hbt_np == 'head'].mean()
+        self.result_dict[mode + '_mean_acc_body'] = mean_acc_np[hbt_np == 'body'].mean()
+        self.result_dict[mode + '_mean_acc_tail'] = mean_acc_np[hbt_np == 'tail'].mean()
         return
 
 
@@ -486,11 +505,12 @@ Mean Recall: Proposed in:
 https://arxiv.org/pdf/1812.01880.pdf CVPR, 2019
 """
 class SGMeanRecall(SceneGraphEvaluation):
-    def __init__(self, result_dict, num_rel, ind_to_predicates, print_detail=False):
+    def __init__(self, result_dict, num_rel, ind_to_predicates, hbt_group, print_detail=False):
         super(SGMeanRecall, self).__init__(result_dict)
         self.num_rel = num_rel
         self.print_detail = print_detail
         self.rel_name_list = ind_to_predicates[1:] # remove __background__
+        self.hbt_group = hbt_group[1:] # remove __background__
 
     def register_container(self, mode):
         #self.result_dict[mode + '_recall_hit'] = {20: [0]*self.num_rel, 50: [0]*self.num_rel, 100: [0]*self.num_rel}
@@ -498,6 +518,9 @@ class SGMeanRecall(SceneGraphEvaluation):
         self.result_dict[mode + '_mean_recall'] = {20: 0.0, 50: 0.0, 100: 0.0}
         self.result_dict[mode + '_mean_recall_collect'] = {20: [[] for i in range(self.num_rel)], 50: [[] for i in range(self.num_rel)], 100: [[] for i in range(self.num_rel)]}
         self.result_dict[mode + '_mean_recall_list'] = {20: [], 50: [], 100: []}
+        self.result_dict[mode + '_mean_recall_head'] = 0.0
+        self.result_dict[mode + '_mean_recall_body'] = 0.0
+        self.result_dict[mode + '_mean_recall_tail'] = 0.0
 
     def generate_print_string(self, mode):
         result_str = 'SGG eval: '
@@ -512,6 +535,12 @@ class SGMeanRecall(SceneGraphEvaluation):
             result_str += '\n'
             result_str += '--------------------------------------------------------\n'
 
+        result_str += 'SGG eval: '
+        result_str += '   mR HEAD: %.4f; ' % (self.result_dict[mode + '_mean_recall_head'])
+        result_str += '   mR BODY: %.4f; ' % (self.result_dict[mode + '_mean_recall_body'])
+        result_str += '   mR TAIL: %.4f; ' % (self.result_dict[mode + '_mean_recall_tail'])
+        result_str += ' for mode=%s, type=Mean Recall HBT.' % mode
+        result_str += '\n'
         return result_str
 
     def collect_mean_recall_items(self, global_container, local_container, mode):
@@ -553,6 +582,14 @@ class SGMeanRecall(SceneGraphEvaluation):
                 sum_recall += tmp_recall
 
             self.result_dict[mode + '_mean_recall'][k] = sum_recall / float(num_rel_no_bg)
+
+        # Head, Body, Tail
+        mean_recall_100_np = np.array(self.result_dict[mode + '_mean_recall_list'][100])
+        hbt_np = np.array(self.hbt_group)
+        assert (mean_recall_100_np.shape[0] == hbt_np.shape[0])
+        self.result_dict[mode + '_mean_recall_head'] = mean_recall_100_np[hbt_np == 'head'].mean()
+        self.result_dict[mode + '_mean_recall_body'] = mean_recall_100_np[hbt_np == 'body'].mean()
+        self.result_dict[mode + '_mean_recall_tail'] = mean_recall_100_np[hbt_np == 'tail'].mean()
         return
 
 
