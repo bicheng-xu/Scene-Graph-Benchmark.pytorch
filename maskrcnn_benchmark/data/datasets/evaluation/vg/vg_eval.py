@@ -140,12 +140,12 @@ def do_vg_evaluation(
         eval_pair_accuracy.register_container(mode)
         evaluator['eval_pair_accuracy'] = eval_pair_accuracy
 
-        eval_mean_acc = SGMeanAcc(result_dict, num_rel_category, dataset.ind_to_predicates, print_detail=True)
+        eval_mean_acc = SGMeanAcc(result_dict, num_rel_category, dataset.ind_to_predicates, dataset.hbt_group, print_detail=True)
         eval_mean_acc.register_container(mode)
         evaluator['eval_mean_acc'] = eval_mean_acc
 
         # used for meanRecall@K
-        eval_mean_recall = SGMeanRecall(result_dict, num_rel_category, dataset.ind_to_predicates, print_detail=True)
+        eval_mean_recall = SGMeanRecall(result_dict, num_rel_category, dataset.ind_to_predicates, dataset.hbt_group, print_detail=True)
         eval_mean_recall.register_container(mode)
         evaluator['eval_mean_recall'] = eval_mean_recall
 
@@ -193,8 +193,10 @@ def do_vg_evaluation(
         if output_folder:
             torch.save(result_dict, os.path.join(output_folder, 'result_dict.pytorch'))
         # return float(np.mean(result_dict[mode + '_recall'][100]))
-        # ["BBox_mAP", "BBox_Acc", "Acc", "mean_Acc", "My_Acc_Mine", "My_mean_Acc_Mine"]
-        return np.array([float(mAp), np.mean(result_dict[mode + '_bbox_accuracy']), np.mean((result_dict[mode + '_accuracy_rate'][100])), result_dict[mode + '_mean_acc'][100], np.mean(result_dict[mode + '_accuracy_rate_mine']), result_dict[mode + '_mean_acc_mine']])
+        # ["BBox_mAP", "BBox_Acc", "Acc", "mean_Acc", "My_Acc_Mine", "My_mean_Acc_Mine", "mean_Acc_Head", "mean_Acc_Body", "mean_Acc_Tail"]
+        return np.array([float(mAp), np.mean(result_dict[mode + '_bbox_accuracy']), np.mean((result_dict[mode + '_accuracy_rate'][100])), result_dict[mode + '_mean_acc'][100], \
+                         np.mean(result_dict[mode + '_accuracy_rate_mine']), result_dict[mode + '_mean_acc_mine'], \
+                         result_dict[mode + '_mean_acc_head'], result_dict[mode + '_mean_acc_body'], result_dict[mode + '_mean_acc_tail']])
     elif "bbox" in iou_types:
         return float(mAp)
     else:
