@@ -277,7 +277,6 @@ def evaluate_relation_of_one_image(groundtruth, prediction, global_container, ev
         local_container['pred_boxes'] = local_container['gt_boxes']
         local_container['pred_classes'] = local_container['gt_classes']
         local_container['obj_scores'] = np.ones(local_container['gt_classes'].shape[0])
-
     elif mode == 'sgcls':
         assert (local_container['gt_boxes'].shape[0] == local_container['pred_boxes'].shape[0])
         if local_container['gt_boxes'].shape[0] != local_container['pred_boxes'].shape[0]:
