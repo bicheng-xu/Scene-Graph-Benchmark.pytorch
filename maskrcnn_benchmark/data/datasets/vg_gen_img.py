@@ -29,6 +29,10 @@ class VG_Gen_Img_Dataset(torch.utils.data.Dataset):
         assert (my_ind_to_predicates == self.ind_to_predicates)
         self.categories = {i : self.ind_to_classes[i] for i in range(len(self.ind_to_classes))}
 
+        self.hbt_group = [None, 'body', 'tail', 'tail', 'tail', 'body', 'body', 'body', 'head', 'body', 'tail', 'body', 'tail', 'tail', 'tail', 'tail', 'body', \
+                                'tail', 'tail', 'body', 'head', 'body', 'head', 'body', 'tail', 'body', 'tail', 'tail', 'tail', 'head', 'head', 'head', 'tail', 'body', \
+                                'tail', 'body', 'tail', 'tail', 'body', 'tail', 'body', 'body', 'tail', 'body', 'tail', 'tail', 'body', 'body', 'head', 'body', 'body']
+
     def __len__(self):
         return len(self.val_anno_data)
 
