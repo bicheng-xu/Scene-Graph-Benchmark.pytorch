@@ -6,8 +6,9 @@
 #SBATCH --mem=30GB
 #SBATCH -c 9
 #SBATCH --gres=gpu:rtx6000:1
-#SBATCH --qos=normal
-#SBATCH --time=2:00:00
+#SBATCH --account=deadline
+#SBATCH --qos=deadline
+#SBATCH --time=24:00:00
 #SBATCH --export=ALL
 #SBATCH --open-mode=append
 #SBATCH --output=slurm-output/%x.%j.out
