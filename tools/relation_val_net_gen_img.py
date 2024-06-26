@@ -65,7 +65,7 @@ def main():
         raise NotImplementedError
 
     # update output_dir
-    output_dir = os.path.join(cfg.GEN_IMG.BASE_DIR, cfg.GEN_IMG.FOLDER_NAME + sgg_mode + cfg.MODEL.ROI_RELATION_HEAD.PREDICTOR + "_" + cfg.MODEL.ROI_RELATION_HEAD.CAUSAL.EFFECT_TYPE + "_2")
+    output_dir = os.path.join(cfg.GEN_IMG.BASE_DIR, cfg.GEN_IMG.FOLDER_NAME + sgg_mode + cfg.MODEL.ROI_RELATION_HEAD.PREDICTOR + "_" + cfg.MODEL.ROI_RELATION_HEAD.CAUSAL.EFFECT_TYPE + "_22")
     evalset_name = cfg.GEN_IMG.ANNO_FILE.split('.')[0]
 
     save_dir = os.path.join(output_dir, "inference_"+evalset_name+"_log")
