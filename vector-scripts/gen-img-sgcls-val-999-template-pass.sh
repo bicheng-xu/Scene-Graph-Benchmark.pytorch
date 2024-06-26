@@ -4,11 +4,10 @@
 #SBATCH --partition=rtx6000
 #SBATCH --exclude=gpu138,gpu169
 #SBATCH --mem=30GB
-#SBATCH -c 9
+#SBATCH -c 8
 #SBATCH --gres=gpu:rtx6000:1
-#SBATCH --account=deadline
-#SBATCH --qos=deadline
-#SBATCH --time=24:00:00
+#SBATCH --qos=m
+#SBATCH --time=12:00:00
 #SBATCH --export=ALL
 #SBATCH --open-mode=append
 #SBATCH --output=slurm-output/%x.%j.out
