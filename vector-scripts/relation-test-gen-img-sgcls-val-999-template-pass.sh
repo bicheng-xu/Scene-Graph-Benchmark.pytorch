@@ -21,7 +21,7 @@ module load my-cuda10.1+cudnn7.6.3
 WORKSPACE="/scratch/hdd001/home/bichengx/projects/Scene-Graph-Benchmark.pytorch"
 cd ${WORKSPACE}
 
-GEN_IMG_COMMON_PATH="/fs01/home/bichengx/RelationTest/val-output-relation-test"
+GEN_IMG_COMMON_PATH="/scratch/hdd001/home/bichengx/projects/ControlNet/my-diff-cnet/vector-scripts-BX/val-scripts/val-output-relation-test"
 PORT_NUM=$1
 GEN_IMG_ANNO_FILE=$2
 GEN_IMG_BASE_DIR=$3
@@ -50,7 +50,7 @@ GLOVE_DIR /scratch/hdd001/home/bichengx/projects/SG-Models/glove \
 MODEL.PRETRAINED_DETECTOR_CKPT /scratch/hdd001/home/bichengx/projects/SG-Models/upload_causal_motif_sgcls/model_0032000.pth \
 DATA_STAT_DIR /scratch/hdd001/home/bichengx/projects/SG-Models/upload_causal_motif_sgcls \
 GEN_IMG.EVAL True \
-GEN_IMG.ANNO_DIR "/scratch/hdd001/home/bichengx/projects/VG-SGG/VG-semantic-test" \
+GEN_IMG.ANNO_DIR "/scratch/hdd001/home/bichengx/projects/VG-SGG/VG-relation-test" \
 GEN_IMG.ANNO_FILE ${GEN_IMG_ANNO_FILE} \
 GEN_IMG.BASE_DIR "${GEN_IMG_COMMON_PATH}/${GEN_IMG_BASE_DIR}" \
 GEN_IMG.FOLDER_NAME ${GEN_IMG_FOLDER_NAME} \
