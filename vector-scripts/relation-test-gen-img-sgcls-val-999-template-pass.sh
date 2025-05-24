@@ -2,7 +2,7 @@
 #SBATCH --job-name=relation-test-sgcls-val-999-pass
 #SBATCH --nodes=1
 #SBATCH --partition=rtx6000
-#SBATCH --exclude=gpu138,gpu169
+#SBATCH --exclude=gpu138,gpu169,gpu176
 #SBATCH --mem=30GB
 #SBATCH -c 8
 #SBATCH --gres=gpu:rtx6000:1
